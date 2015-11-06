@@ -1,5 +1,6 @@
 package com.digiflare.peoplecontactsproject;
 
+import com.digiflare.peoplecontactsproject.utils.SQLiteHelper;
 import com.google.gson.Gson;
 
 import com.digiflare.peoplecontactsproject.interfaces.FragmentListener;
@@ -24,11 +25,14 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
     private FragmentListener fragment2Listener;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+    private SQLiteHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_application);
+
+        db = new SQLiteHelper(this);
 
         fragment2 = new Fragment2_port();
         fragment1 = new Fragment1_port();
@@ -122,7 +126,11 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
 
         fragment2Listener = null;
 
-        DBModel.convertToJSONArrayString();
+        //take all of DBModel's ArrayList<MasterRecord> and serialize into json string
+        String jsonString = DBModel.convertToJSONArrayString();
+
+        //save the string into database when leaving app
+        //DBModel.saveTable(jsonString);
 
     }
 

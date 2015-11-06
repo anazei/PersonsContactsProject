@@ -7,21 +7,25 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class SQLiteHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "kevinsDB";
+    private static final String DATABASE_NAME = "kevin.db";
+
     private static SQLiteDatabase db;
 
     public SQLiteHelper(Context context){
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        super(context, DATABASE_NAME, null, 1);
+        SQLiteDatabase db = this.getWritableDatabase();
+
     }
 
     @Override
     public void onCreate(final SQLiteDatabase db) {
-        this.db = db;
+        db.execSQL("create table profiles (ID INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT)");
     }
 
     @Override
     public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS profiles");
+        onCreate(db);
     }
 
     /**

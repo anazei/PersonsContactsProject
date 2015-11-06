@@ -187,7 +187,7 @@ public final class DBModel {
      * Upon first time opening the app, if no table is detected, create the table
      */
     public static void createTable(){
-        sql.command("CREATE TABLE IF NOT EXISTS profiles (users TEXT)");
+        sql.command("CREATE TABLE profiles (users TEXT)");
     }
 
     /**
