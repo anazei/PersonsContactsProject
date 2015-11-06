@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:id="@+id/fragment1_port"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+
+    <ImageView android:id="@+id/profile_image_view"
+               android:src="@drawable/profile"
+               android:layout_width="100dp"
+               android:layout_height="100dp"/>
+
+    <LinearLayout android:layout_weight="3"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
+
+        <EditText android:id="@+id/first_name_input"
+                  android:hint="first name"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"/>
+
+        <EditText android:id="@+id/last_name_input"
+                  android:hint="last name"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <Button android:id="@+id/add_update_button"
+            android:text="Add"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="100dp"/>
+
+</LinearLayout>

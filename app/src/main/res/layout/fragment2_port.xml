@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:id="@+id/fragment2_port"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+
+    <!-- Group2: notes input field + add note button -->
+    <LinearLayout android:orientation="horizontal"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content">
+
+        <EditText android:id="@+id/note_input"
+                  android:text=""
+                  android:layout_weight="3"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"/>
+
+        <Button android:id="@+id/add_note_button"
+                android:text="Add Note"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+</LinearLayout>
