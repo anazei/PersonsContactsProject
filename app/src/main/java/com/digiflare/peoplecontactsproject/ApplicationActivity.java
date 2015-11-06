@@ -1,7 +1,31 @@
 package com.digiflare.peoplecontactsproject;
 
 import com.digiflare.peoplecontactsproject.utils.SQLiteHelper;
-import com.google.gson.Gson;
+
+import com.google.android.gms.cast.ApplicationMetadata;
+import com.google.android.gms.cast.Cast;
+import com.google.android.gms.cast.Cast.ApplicationConnectionResult;
+import com.google.android.gms.cast.CastDevice;
+import com.google.android.gms.cast.CastMediaControlIntent;
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaStatus;
+import com.google.android.gms.cast.RemoteMediaPlayer;
+import com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.Api;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.cast.MediaMetadata;
+
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.MediaRouteActionProvider;
+import android.support.v7.media.MediaRouteSelector;
+import android.support.v7.media.MediaRouter;
+import android.support.v7.media.MediaRouter.RouteInfo;
 
 import com.digiflare.peoplecontactsproject.interfaces.FragmentListener;
 import com.digiflare.peoplecontactsproject.model.DBModel;
@@ -10,11 +34,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
-
-import java.util.ArrayList;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 
 public class ApplicationActivity extends AppCompatActivity implements FragmentListener {
 
@@ -26,6 +50,20 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private SQLiteHelper db;
+
+    //chromecast specific properties
+    private MediaRouter mMediaRouter;
+    private MediaRouteSelector mMediaRouteSelector;
+    private MyMediaRouterCallback mMediaRouterCallback;
+    private CastDevice mSelectedDevice;
+    private GoogleApiClient mApiClient;
+    private RemoteMediaPlayer mRemoteMediaPlayer;
+    private Cast.Listener mCastListener;
+    private boolean waitingForReconnect = false;
+    private boolean applicationStarted = false;
+    private boolean videoIsLoaded;
+    private boolean isPlaying;
+    private MenuItem menuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +105,55 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
 
         //provide an application context for DBModel
         DBModel.setContext(getApplicationContext());
+
+
+        // init and configure ChromeCast device discovery - unique chromecast appID is provided here
+        mMediaRouter = MediaRouter.getInstance(getApplicationContext());
+        mMediaRouteSelector = new MediaRouteSelector.Builder()
+                        .addControlCategory(CastMediaControlIntent.categoryForCast(getResources().getString(R.string.app_id)))
+                        .build();
+        mMediaRouterCallback = new MyMediaRouterCallback();
+
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+
+        Log.d("kevin", "oncreate options menu");
+
+        getMenuInflater().inflate(R.menu.menu_application, menu);
+        MenuItem mediaRouteMenuItem = menu.findItem(R.id.media_route_menu_item);
+        MediaRouteActionProvider mediaRouteActionProvider = (MediaRouteActionProvider) MenuItemCompat.getActionProvider(mediaRouteMenuItem);
+        // Set the MediaRouteActionProvider selector for device discovery.
+        mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
+
+        menuItem = menu.findItem(R.id.play_video);
+        menuItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(final MenuItem item) {
+
+                //begin video playback
+                //mRemoteMediaPlayer.play(mApiClient);
+                startVideo();
+
+                return false;
+            }
+        });
+
+
+
+        return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Start media router discovery
+        mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
+                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+        Log.d("kevin", "onstart");
     }
 
     public void showNoteField(){
@@ -134,5 +221,152 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
 
     }
 
+    ////////////////////////////////////////// Chrome cast specific //////////////////////////////////////////
+
+    //cast listener
+    private void initCastListener(){
+        mCastListener = new Cast.Listener(){
+            @Override
+            public void onApplicationStatusChanged() {
+                super.onApplicationStatusChanged();
+            }
+
+            @Override
+            public void onVolumeChanged() {
+                super.onVolumeChanged();
+            }
+
+            @Override
+            public void onApplicationDisconnected(final int statusCode) {
+                super.onApplicationDisconnected(statusCode);
+            }
+        };
+    }
+
+    //remote media player - this will control the receiver app
+    private void initRemoteMediaPlayer(){
+        mRemoteMediaPlayer = new RemoteMediaPlayer();
+        mRemoteMediaPlayer.setOnStatusUpdatedListener(new RemoteMediaPlayer.OnStatusUpdatedListener(){
+
+            @Override
+            public void onStatusUpdated() {
+                MediaStatus mediaStatus = mRemoteMediaPlayer.getMediaStatus();
+                isPlaying = mediaStatus.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING;
+            }
+        });
+
+        mRemoteMediaPlayer.setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener(){
+
+            @Override
+            public void onMetadataUpdated() {
+
+            }
+        });
+
+    }
+
+    //launch receiver app
+    private void launchReceiver(){
+        Cast.CastOptions.Builder apiOptionsBuilder = Cast.CastOptions.builder(mSelectedDevice, mCastListener);
+
+        ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks();
+        ConnectionFailedListener mConnectionFailedListener = new ConnectionFailedListener();
+
+        mApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Cast.API, apiOptionsBuilder.build())
+                .addConnectionCallbacks(mConnectionCallbacks)
+                .addOnConnectionFailedListener(mConnectionFailedListener)
+                .build();
+
+        mApiClient.connect();
+
+    }
+
+    private void startVideo(){
+        MediaMetadata mediaMetadata = new MediaMetadata( MediaMetadata.MEDIA_TYPE_MOVIE );
+        mediaMetadata.putString(MediaMetadata.KEY_TITLE, "Kevin's ChromeCast Video Stream");
+
+        MediaInfo mediaInfo = new MediaInfo.Builder("https://ia700408.us.archive.org/26/items/BigBuckBunny_328/BigBuckBunny_512kb.mp4")
+                .setContentType("video/mp4")
+                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                .setMetadata(mediaMetadata)
+                .build();
+
+        try{
+
+            mRemoteMediaPlayer.load(mApiClient, mediaInfo, true)
+                    .setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+                        @Override
+                        public void onResult(final MediaChannelResult mediaChannelResult) {
+                            if(mediaChannelResult.getStatus().isSuccess()){
+                                Log.d("kevin", "success if true");
+                            }
+                        }
+                    });
+
+        } catch(Exception exception){
+
+        }
+    }
+
+    /**
+     * Callback for MediaRouter events
+     */
+    private class MyMediaRouterCallback extends MediaRouter.Callback {
+
+        //device pairing has been chosen
+        @Override
+        public void onRouteSelected(MediaRouter router, RouteInfo info) {
+
+            Log.d("kevin", "onRouteSelected");
+
+            initCastListener();
+            initRemoteMediaPlayer();
+
+            // Handle the user route selection.
+            mSelectedDevice = CastDevice.getFromBundle(info.getExtras());
+
+            launchReceiver();
+        }
+
+        //device pairing has been disconnected
+        @Override
+        public void onRouteUnselected(MediaRouter router, RouteInfo info) {
+            Log.d("kevin", "onRouteUnselected: info=" + info);
+            //teardown(false);
+            mSelectedDevice = null;
+        }
+    }
+
+    private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
+
+        @Override
+        public void onConnected(final Bundle bundle) {
+            Cast.CastApi.launchApplication(mApiClient, getString(R.string.app_id), false)
+                    .setResultCallback(
+                            new ResultCallback<ApplicationConnectionResult>() {
+                                @Override
+                                public void onResult(final ApplicationConnectionResult applicationConnectionResult) {
+                                    Status status = applicationConnectionResult.getStatus();
+                                    if( status.isSuccess() ) {
+                                        Log.d("kevin", "connection call backs success");
+                                    }
+                                }
+                            }
+                    );
+        }
+
+        @Override
+        public void onConnectionSuspended(final int i) {
+
+        }
+    }
+
+    private class ConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener{
+        @Override
+        public void onConnectionFailed(final ConnectionResult connectionResult) {
+
+        }
+    }
 
 }
