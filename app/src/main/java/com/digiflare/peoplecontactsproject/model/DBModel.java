@@ -2,8 +2,16 @@ package com.digiflare.peoplecontactsproject.model;
 
 import com.google.gson.Gson;
 
+import com.digiflare.peoplecontactsproject.utils.DatabaseHandler;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import android.content.Context;
 import android.util.Log;
+
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 /**
@@ -20,21 +28,22 @@ public final class DBModel {
     private static ArrayList<MasterRecord> arrayList = new ArrayList<MasterRecord>();
     private static MasterRecord currentMasterRecord = null;
     private static Context applicationContext;
-
+    private static DatabaseHandler database;
 
     public DBModel(){
     }
 
-    //pass in application context only, not activity context
-    public static void setContext(Context context){
-        applicationContext = context;
-    }
-
-    public static void init(){
+    public static void init(Context context){
         //TEST ONLY, REMOVE THIS ARRAYLIST.ADD WHEN DONE
-        arrayList.add(new MasterRecord(new Person("kevin", "lam"), null));
+        //arrayList.add(new MasterRecord(new Person("kevin", "lam"), null));
 
+        applicationContext = context;
 
+        Log.d("kevin", "db init");
+        database = new DatabaseHandler(applicationContext);
+
+        //check database to try to repopulate the DBModel's ArrayList<MasterRecord>
+        readDataBase();
     }
 
     //show all user profiles
@@ -187,5 +196,93 @@ public final class DBModel {
 
         return json;
     }
+
+    /**
+     * Read database upon app start and populate fields if DB table exists
+     */
+    public static void readDataBase(){
+
+        if(database.checkIfTableExists() == true) {
+
+            //URL decode the string before returning it
+            String decoded = null;
+
+            try {
+                decoded = URLDecoder.decode(database.getAllProfiles(), "UTF-8");
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+
+            Log.d("kevin", "decoded JSON looks like this: " + decoded);
+
+            //arrayList = new Gson().fromJson(decoded, tempArrayList.get);
+
+            //convert from JSON to ArrayList<MasterRecord>
+            JSONArray jsonArray = null;
+
+            try {
+                jsonArray = new JSONArray(decoded);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+
+            //populate ArrayList<MasterRecords>
+            for (int i = 0; i < jsonArray.length(); i++) {
+
+                MasterRecord tempMasterRecord = null;
+
+                try {
+                    //Log.d("kevin", "length of json array: " + jsonArray.optString(i).toString() );
+                    JSONObject jsonObject = new JSONObject(jsonArray.optString(i).toString());
+
+                    //Log.d("kevin", "json Object " + i + " person firstName: " + new JSONObject(jsonObject.optString("person")).optString("firstName") );
+                    //Log.d("kevin", "json Object " + i + " person lastName: " + new JSONObject(jsonObject.optString("person")).optString("lastName") );
+
+                    //construct a Person object first
+                    String firstName = new JSONObject(jsonObject.optString("person")).optString("firstName").toString();
+                    String lastName = new JSONObject(jsonObject.optString("person")).optString("lastName").toString();
+                    Person person = new Person(firstName, lastName);
+
+                    //put the Person in a temporary MasterRecord
+                    tempMasterRecord = new MasterRecord(person, "");
+
+                    //Log.d("kevin", "json Object " + i + " notes: " + jsonObject.optString("notes") );
+                    JSONArray tempArray = new JSONArray(jsonObject.optString("notes"));
+
+                    //begin to add the associated notes to that temporary MasterRecord
+                    for (int j = 0; j < tempArray.length(); j++) {
+                        //Log.d("kevin", "current notes array value: " + tempArray.get(j).toString());
+                        tempMasterRecord.addNotes(tempArray.get(j).toString());
+                    }
+
+                    //add the MasterRecord to the ArrayList<MasterRecord>
+                    arrayList.add(tempMasterRecord);
+                } catch (Exception exception) {
+                }
+            }
+        }
+    }
+
+    /**
+     * Send in a JSON array to database onDestroy
+     */
+    public static void updateDatabase(String jsonString){
+
+        //escape strings to send into SQL so it won't break the SQL request
+        String encoded = null;
+
+        try {
+             encoded = URLEncoder.encode(jsonString, "UTF-8");
+        } catch(Exception exception){
+            exception.printStackTrace();
+        }
+
+        Log.d("kevin", "encoded string looks like this: " + encoded);
+
+        database.updateProfile( encoded );
+    }
+
+
 }
+
 

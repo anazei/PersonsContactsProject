@@ -1,4 +1,4 @@
-package com.digiflare.databasetest;
+package com.digiflare.peoplecontactsproject.utils;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -13,7 +13,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private String KEY_JSON = "json";
 
     public DatabaseHandler(Context context){
-        super(context, "profiles_db", null, 1);
+        super(context, "profiles", null, 1);
         Log.d("kevin", "db run");
     }
 
@@ -37,19 +37,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Retrieves all data from database and reads first row
      */
-    public int getAllProfiles(){
+    public String getAllProfiles(){
 
-        String selectQuery = "SELECT * FROM " + TABLE_PROFILES;
+        //check if table "profiles" exists first
+        if(checkIfTableExists() == true) {
 
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
+            String selectQuery = "SELECT * FROM " + TABLE_PROFILES;
 
-        if(cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            Log.d("kevin", "getAllProfiles " + cursor.getString(1) + " " + cursor.getColumnName(1));
+            SQLiteDatabase db = this.getWritableDatabase();
+            Cursor cursor = db.rawQuery(selectQuery, null);
+
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                Log.d("kevin", "getAllProfiles " + cursor.getString(1));
+                return cursor.getString(1);
+            }
         }
 
-        return cursor.getCount();
+        Log.d("kevin", "profiles do not exist yet");
+
+        return null;
     }
 
     /**
@@ -58,7 +65,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void updateProfile(String data){
 
         //if table exists, update data, else add data
-        if(getAllProfiles() > 0) {
+        if(checkIfTableExists() == true) {
 
             //update data
             SQLiteDatabase db = this.getWritableDatabase();
@@ -68,6 +75,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             Log.d("kevin", "table exists, update profile");
 
         } else {
+
+            Log.d("kevin", "tried updating profile but table doesn't exist so insert new profile");
 
             //insert data
             addContact(data);
@@ -82,9 +91,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String update = "INSERT or replace INTO " + TABLE_PROFILES + " (json) VALUES(\""+ data + "\")";
+        String update = "INSERT INTO " + TABLE_PROFILES + " (json) VALUES(\""+ data + "\")";
         db.execSQL(update);
 
         Log.d("kevin", "add contact db");
+    }
+
+    /**
+     * Checks to see if table profile exists
+     */
+    public boolean checkIfTableExists(){
+
+        String selectQuery = "SELECT * FROM " + TABLE_PROFILES;
+
+        Cursor cursor = null;
+
+        try {
+            SQLiteDatabase db = this.getReadableDatabase();
+            cursor = db.rawQuery(selectQuery, null);
+        } catch(Exception exception){
+            exception.printStackTrace();
+        }
+
+        if(cursor != null) {
+            if (cursor.getCount() > 0) {
+                Log.d("kevin", "table does exist");
+                return true;
+            }
+        }
+
+        Log.d("kevin", "table does not exist");
+        return false;
     }
 }

@@ -72,8 +72,6 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
 
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
 
-        //DBModel check database to try to repopulate the DBModel's ArrayList<MasterRecord>
-
         //check sharedPreferences to see if there was previously anything in the first and last name fields to repopulate currentMasterRecord
         String jsonString = sharedPreferences.getString(SHARED_PREFERENCE_KEY, "");
 
@@ -98,9 +96,10 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
                 .replace(R.id.topPanelUi, fragment1, Fragment1_port.NAME)
                 .commit();
 
-        //provide an application context for DBModel
-        DBModel.setContext(getApplicationContext());
+        //init and provide an application context for DBModel first
+        DBModel.init(getApplicationContext());
 
+        //////////////////////////// Chrome cast specific intialization ///////////////////////////////
 
         // init and configure ChromeCast device discovery - unique chromecast appID is provided here
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
@@ -108,7 +107,6 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
                         .addControlCategory(CastMediaControlIntent.categoryForCast(getResources().getString(R.string.app_id)))
                         .build();
         mMediaRouterCallback = new MyMediaRouterCallback();
-
 
     }
 
@@ -212,7 +210,7 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
         String jsonString = DBModel.convertToJSONArrayString();
 
         //save the string into database when leaving app
-
+        DBModel.updateDatabase(jsonString);
 
     }
 

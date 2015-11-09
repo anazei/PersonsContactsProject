@@ -60,9 +60,6 @@ public class Fragment1_port extends Fragment implements View.OnClickListener, Te
         firstNameInput.addTextChangedListener(this);
         lastNameInput.addTextChangedListener(this);
 
-        //testing only
-        DBModel.init();
-
         //Log.d("kevin", "get activity: " + getActivity());
         activityReference = (ApplicationActivity) getActivity();
 
