@@ -1,7 +1,5 @@
 package com.digiflare.peoplecontactsproject;
 
-import com.digiflare.peoplecontactsproject.utils.SQLiteHelper;
-
 import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.Cast.ApplicationConnectionResult;
@@ -49,7 +47,6 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
     private FragmentListener fragment2Listener;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
-    private SQLiteHelper db;
 
     //chromecast specific properties
     private MediaRouter mMediaRouter;
@@ -69,8 +66,6 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_application);
-
-        db = new SQLiteHelper(this);
 
         fragment2 = new Fragment2_port();
         fragment1 = new Fragment1_port();
@@ -217,7 +212,7 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
         String jsonString = DBModel.convertToJSONArrayString();
 
         //save the string into database when leaving app
-        //DBModel.saveTable(jsonString);
+
 
     }
 
@@ -342,6 +337,9 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
 
         @Override
         public void onConnected(final Bundle bundle) {
+
+            //AppID is what unique receiver HTML app end point it is being pointed to,
+            //kind of like www.google.com except the ID is based on an unique integer value
             Cast.CastApi.launchApplication(mApiClient, getString(R.string.app_id), false)
                     .setResultCallback(
                             new ResultCallback<ApplicationConnectionResult>() {

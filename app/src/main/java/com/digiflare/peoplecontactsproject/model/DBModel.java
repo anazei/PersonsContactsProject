@@ -2,14 +2,8 @@ package com.digiflare.peoplecontactsproject.model;
 
 import com.google.gson.Gson;
 
-import com.digiflare.peoplecontactsproject.utils.SQLiteHelper;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.util.Log;
-
 import java.util.ArrayList;
 
 /**
@@ -26,7 +20,7 @@ public final class DBModel {
     private static ArrayList<MasterRecord> arrayList = new ArrayList<MasterRecord>();
     private static MasterRecord currentMasterRecord = null;
     private static Context applicationContext;
-    private static SQLiteHelper sql;
+
 
     public DBModel(){
     }
@@ -40,7 +34,7 @@ public final class DBModel {
         //TEST ONLY, REMOVE THIS ARRAYLIST.ADD WHEN DONE
         arrayList.add(new MasterRecord(new Person("kevin", "lam"), null));
 
-        sql = new SQLiteHelper(applicationContext);
+
     }
 
     //show all user profiles
@@ -184,29 +178,6 @@ public final class DBModel {
     }
 
     /**
-     * Upon first time opening the app, if no table is detected, create the table
-     */
-    public static void createTable(){
-        sql.command("CREATE TABLE profiles (users TEXT)");
-    }
-
-    /**
-     * save the ArrayList<MasterRecord> as JSONArray in stringified format
-     */
-    public static void saveTable(String data){
-        sql.command("INSERT INTO profiles VALUES(\"" + data + "\")");
-    }
-
-    /**
-     * Read the database table contents as a JSON string
-     */
-    public static String readTable(){
-
-        //return sql.command();
-        return null;
-    }
-
-    /**
      * convert the ArrayList<MasterRecord> into string for database storage
      */
     public static String convertToJSONArrayString(){
@@ -214,7 +185,7 @@ public final class DBModel {
         String json = new Gson().toJson(arrayList);
         Log.d("kevin", "json array in string: " + json);
 
-        return null;
+        return json;
     }
 }
 
