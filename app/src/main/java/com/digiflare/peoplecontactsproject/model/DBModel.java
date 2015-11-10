@@ -141,6 +141,7 @@ public final class DBModel {
             if(currentMasterRecord.getPerson().firstName.equals(arrayList.get(i).getPerson().firstName)
                     && currentMasterRecord.getPerson().lastName.equals(arrayList.get(i).getPerson().lastName)){
                 arrayList.get(i).addNotes(note);
+                Log.d("kevin", "note added to profile found at position " + i);
             }
         }
 
@@ -148,6 +149,7 @@ public final class DBModel {
 
         getUsersArrayListNotes();
 
+        showArrayListLog();
     }
 
     /**
@@ -208,6 +210,8 @@ public final class DBModel {
      * Read database upon app start and populate fields if DB table exists
      */
     public static void readDataBase(){
+
+        Log.d("kevin", "read database");
 
         if(database.checkIfTableExists() == true) {
 

@@ -197,8 +197,10 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
+        super.onPause();
+
+        Log.d("kevin", "on destroy");
 
         fragment2Listener = null;
 
