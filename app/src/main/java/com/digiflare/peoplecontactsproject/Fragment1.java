@@ -24,9 +24,9 @@ import android.widget.Toast;
  * This is the top main panel
  */
 
-public class Fragment1_port extends Fragment implements View.OnClickListener, TextWatcher {
+public class Fragment1 extends Fragment implements View.OnClickListener, TextWatcher {
 
-    public static final String NAME = Fragment1_port.class.getSimpleName();
+    public static final String NAME = Fragment1.class.getSimpleName();
     private View view;
     private Button addUpdateButton;
     private EditText firstNameInput;
@@ -41,7 +41,7 @@ public class Fragment1_port extends Fragment implements View.OnClickListener, Te
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 
-        return inflater.inflate(R.layout.fragment1_port, container, false);
+        return inflater.inflate(R.layout.fragment1, container, false);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class Fragment1_port extends Fragment implements View.OnClickListener, Te
         if(getArguments() != null) {
             //Log.d("kevin", "bundle " + getArguments().getString("hello", "DEFAULT"));
 
-            String jsonString = getArguments().getString("hello", "DEFAULT");
+            String jsonString = getArguments().getString(getResources().getString(R.string.kevin_shared_preferences), "DEFAULT");
 
             JSONObject jsonObject = null;
             try {

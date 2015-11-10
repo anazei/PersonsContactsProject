@@ -1,6 +1,5 @@
 package com.digiflare.peoplecontactsproject;
 
-import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.Cast.ApplicationConnectionResult;
 import com.google.android.gms.cast.CastDevice;
@@ -10,10 +9,7 @@ import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.cast.MediaMetadata;
@@ -42,8 +38,8 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
 
     private String SHARED_PREFERENCE_KEY = "sharedKey";
 
-    private Fragment1_port fragment1;
-    private Fragment2_port fragment2;
+    private Fragment1 fragment1;
+    private Fragment2 fragment2;
     private FragmentListener fragment2Listener;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -67,8 +63,8 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_application);
 
-        fragment2 = new Fragment2_port();
-        fragment1 = new Fragment1_port();
+        fragment2 = new Fragment2();
+        fragment1 = new Fragment1();
 
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
 
@@ -80,7 +76,7 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
             Log.d("kevin", "recreated activity, json string to be filled in is: " + jsonString);
 
             Bundle bundle = new Bundle();
-            bundle.putString("hello", jsonString);
+            bundle.putString(getResources().getString(R.string.kevin_shared_preferences), jsonString);
             fragment1.setArguments(bundle);
 
         }
@@ -89,11 +85,11 @@ public class ApplicationActivity extends AppCompatActivity implements FragmentLi
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         fragmentManager.beginTransaction()
-                .replace(R.id.bottomPanelUi, fragment2, Fragment2_port.NAME)
+                .replace(R.id.bottomPanelUi, fragment2, Fragment2.NAME)
                 .commit();
 
         fragmentManager.beginTransaction()
-                .replace(R.id.topPanelUi, fragment1, Fragment1_port.NAME)
+                .replace(R.id.topPanelUi, fragment1, Fragment1.NAME)
                 .commit();
 
         //init and provide an application context for DBModel first

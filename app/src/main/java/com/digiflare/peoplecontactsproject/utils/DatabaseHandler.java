@@ -11,9 +11,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private String TABLE_PROFILES = "profiles";
     private String KEY_ID = "id";
     private String KEY_JSON = "json";
+    private static String DATABASE_NAME = "profiles";
 
     public DatabaseHandler(Context context){
-        super(context, "profiles", null, 1);
+        super(context, DATABASE_NAME, null, 1);
         Log.d("kevin", "db run");
     }
 
@@ -70,7 +71,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             //update data
             SQLiteDatabase db = this.getWritableDatabase();
 
-            String update = "UPDATE " + TABLE_PROFILES + " SET json = \"" + data + "\" WHERE id = \"1\"";
+            String update = "UPDATE " + TABLE_PROFILES + " SET "+ KEY_JSON + "= \"" + data + "\" WHERE id = \"1\"";
             db.execSQL(update);
             Log.d("kevin", "table exists, update profile");
 

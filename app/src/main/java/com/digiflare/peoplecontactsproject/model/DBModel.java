@@ -34,8 +34,6 @@ public final class DBModel {
     }
 
     public static void init(Context context){
-        //TEST ONLY, REMOVE THIS ARRAYLIST.ADD WHEN DONE
-        //arrayList.add(new MasterRecord(new Person("kevin", "lam"), null));
 
         applicationContext = context;
 
@@ -47,10 +45,13 @@ public final class DBModel {
     }
 
     //show all user profiles
-    private static void testShowArrayList(){
+    private static void showArrayListLog(){
 
         if(currentMasterRecord != null) {
-            for (int i = 0; i < arrayList.size(); i++) {
+
+            int arrayListSize = arrayList.size();
+
+            for (int i = 0; i < arrayListSize; i++) {
                 Log.d("kevin", "user profile entry: " + arrayList.get(i).getPerson().firstName + " " + arrayList.get(i).getPerson().lastName);
             }
 
@@ -59,7 +60,7 @@ public final class DBModel {
     }
 
     //show particular profile's notes arraylist
-    private static void testShowProfileNotes(Person profile){
+    private static void showProfileNotesLog(Person profile){
 
         for(int i=0;i<arrayList.size();i++){
 
@@ -80,7 +81,7 @@ public final class DBModel {
         arrayList.add(record);
         currentMasterRecord = record;
 
-        testShowArrayList();
+        showArrayListLog();
     }
 
     //update current record
@@ -90,14 +91,16 @@ public final class DBModel {
         //cycle through arrayList to see what position oldPerson is located and replace with newPerson
         Log.d("kevin", "update existing person profile");
 
-        for(int i=0;i<arrayList.size();i++){
+        int arrayListSize = arrayList.size();
+
+        for(int i=0;i<arrayListSize;i++){
             if(arrayList.get(i).getPerson().lastName.equals(oldPerson.lastName)
                     && arrayList.get(i).getPerson().firstName.equals(oldPerson.firstName)){
                 arrayList.get(i).setPerson(newPerson);
             }
         }
 
-        testShowArrayList();
+        showArrayListLog();
     }
 
     //Check to see if profile already exists - so add/update button can show appropriate text
@@ -107,20 +110,22 @@ public final class DBModel {
         //if found, return true, else return false
         Log.d("kevin", "array list length " + arrayList.size());
 
-        for(int i=0;i<arrayList.size();i++){
+        int arrayListSize = arrayList.size();
+
+        for(int i=0;i<arrayListSize;i++){
             String lastName = arrayList.get(i).getPerson().lastName;
             String firstName = arrayList.get(i).getPerson().firstName;
 
             if(person.lastName.equals(lastName) && person.firstName.equals(firstName)){
                 Log.d("kevin", "profile already exists");
                 currentMasterRecord = new MasterRecord(new Person(firstName, lastName), null);
-                testShowArrayList();
+                showArrayListLog();
                 return true;
             }
         }
 
         Log.d("kevin", "profile does not exist");
-        testShowArrayList();
+        showArrayListLog();
 
         return false;
     }
@@ -130,16 +135,16 @@ public final class DBModel {
 
         Log.d("kevin", "size: " + arrayList.size());
 
-        //currentMasterRecord.addNotes(note);
+        int arrayListSize = arrayList.size();
 
-        for(int i=0;i<arrayList.size();i++){
+        for(int i=0;i<arrayListSize;i++){
             if(currentMasterRecord.getPerson().firstName.equals(arrayList.get(i).getPerson().firstName)
                     && currentMasterRecord.getPerson().lastName.equals(arrayList.get(i).getPerson().lastName)){
                 arrayList.get(i).addNotes(note);
             }
         }
 
-        testShowProfileNotes(currentMasterRecord.getPerson());
+        showProfileNotesLog(currentMasterRecord.getPerson());
 
         getUsersArrayListNotes();
 
@@ -150,7 +155,9 @@ public final class DBModel {
      */
     public static ArrayList<String> getUsersArrayListNotes(){
 
-        for(int i=0;i<arrayList.size();i++){
+        int arrayListSize = arrayList.size();
+
+        for(int i=0;i<arrayListSize;i++){
             if(arrayList.get(i).getPerson().firstName.equals(currentMasterRecord.getPerson().firstName)
                     && arrayList.get(i).getPerson().lastName.equals(currentMasterRecord.getPerson().lastName)){
                 Log.d("kevin", "notes entry for " + currentMasterRecord.getPerson().firstName + " " + currentMasterRecord.getPerson().lastName + ": " +
@@ -187,7 +194,7 @@ public final class DBModel {
     }
 
     /**
-     * convert the ArrayList<MasterRecord> into string for database storage
+     * serialize the ArrayList<MasterRecord> into string format for database storage
      */
     public static String convertToJSONArrayString(){
 
@@ -214,8 +221,6 @@ public final class DBModel {
             }
 
             Log.d("kevin", "decoded JSON looks like this: " + decoded);
-
-            //arrayList = new Gson().fromJson(decoded, tempArrayList.get);
 
             //convert from JSON to ArrayList<MasterRecord>
             JSONArray jsonArray = null;
@@ -268,7 +273,7 @@ public final class DBModel {
      */
     public static void updateDatabase(String jsonString){
 
-        //escape strings to send into SQL so it won't break the SQL request
+        //escape strings to send into SQL so it won't break the SQL request with too many quotations
         String encoded = null;
 
         try {
@@ -282,7 +287,4 @@ public final class DBModel {
         database.updateProfile( encoded );
     }
 
-
 }
-
-

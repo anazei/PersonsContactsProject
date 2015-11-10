@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,23 +17,23 @@ import android.widget.EditText;
 
 import java.util.ArrayList;
 
-public class Fragment2_port extends Fragment implements View.OnClickListener, FragmentListener {
+public class Fragment2 extends Fragment implements View.OnClickListener, FragmentListener {
 
-    public final static String NAME = Fragment2_port.class.getSimpleName();
+    public final static String NAME = Fragment2.class.getSimpleName();
 
     private RecyclerView recyclerView;
     private ArrayList<PersonNoteModel> recyclerViewArrayList;
     private Button addNoteButton;
     private EditText noteInputText;
 
-    public Fragment2_port(){
+    public Fragment2(){
         recyclerViewArrayList = new ArrayList<PersonNoteModel>();
     }
 
     @Nullable
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment2_port, container, false);
+        return inflater.inflate(R.layout.fragment2, container, false);
     }
 
     @Override
@@ -96,10 +95,12 @@ public class Fragment2_port extends Fragment implements View.OnClickListener, Fr
 
         ArrayList<String> notes = DBModel.getUsersArrayListNotes();
 
-        //if there's actually data inside the notes arraylist
-        if(notes.size() != 0) {
+        int noteSize = notes.size();
 
-            for (int i = 0; i < notes.size(); i++) {
+        //if there's actually data inside the notes arraylist
+        if(noteSize != 0) {
+
+            for (int i = 0; i < noteSize; i++) {
                 recyclerViewArrayList.add(new PersonNoteModel(R.layout.person_content_cell, notes.get(i)));
             }
 
